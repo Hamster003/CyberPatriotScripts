@@ -26,4 +26,9 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 # ^Installs Chocolaty for software installs
 Pause
 
-Install-Module -Name PSWindowsUpdate #Installs the Powershell Windows Update Package so that updates can be done in the script
+Install-Module -Name PSWindowsUpdate #Installs the PWSH Windows Update Package so that updates can be done in the script
+Install-Module -Name SecurityPolicy #Installs a PWSH module that allows for the editing on the Local security policy
+
+
+
+Uninstall-Module PSWindowsUpdate #Removes the PWSH update module
