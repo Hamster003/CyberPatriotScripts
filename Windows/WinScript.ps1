@@ -28,7 +28,16 @@ Pause
 
 Install-Module -Name PSWindowsUpdate #Installs the PWSH Windows Update Package so that updates can be done in the script
 Install-Module -Name SecurityPolicy #Installs a PWSH module that allows for the editing on the Local security policy
+Install-Module -Name AuditPolicy #Installs a PWSH module that allows for the editing on the GPO
+
+Set-NetFirewallProfile -Enabled True #Enables Firewall
+sfc /scannow #Checks System Files
 
 
+
+Get-WindowsUpdate -AcceptAll -Install -AutoReboot #Gets and installs windows updates
 
 Uninstall-Module PSWindowsUpdate #Removes the PWSH update module
+Uninstall-Module SecurityPolicy #Removes the PWSH local security policy module
+Uninstall-Module AuditPolicy #Removes the PWSH GPO editing module
+&$PSScriptRoot/RemoveChoco.ps1 #Removes Chocolaty
