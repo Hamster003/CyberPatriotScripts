@@ -72,13 +72,14 @@ function Get-User {
 
     Write-Output "Not yet added"
     
+    Pause
 }
 
 function Get-Firewall {
     
     Set-NetFirewallProfile -Enabled True #Enables Firewall
 
-    
+    Pause
 }
 
 function Get-Password {
@@ -101,12 +102,14 @@ function Get-Password {
     net accounts /maxpwage:$maxpswdage #Max password age   default 60 days
     net accounts /uniquepw:$uniquwpswd #passwords remembered for history   default 3 
 
+    Pause
 }
 
 function Get-Update {
     
     Get-WindowsUpdate -AcceptAll -Install #Gets and installs windows updates
     
+    Pause
 }
 
 function Close-Program {
@@ -136,7 +139,7 @@ function Close-Program {
         exit
     }
     
-    
+    Pause
 }
 
 function Get-SystemTool {
@@ -144,23 +147,46 @@ function Get-SystemTool {
     Write-Output "Checking System Files"
     sfc /scannow #Checks System Files
 
+    Pause
 }
 
 ############################################## MAIN SCRIPT ##############################################
 
 Get-MenuSelect
 
-Switch ($selection)
+if ($selection -eq 1) {
+    Get-User
+}elseif ($selection -eq 2) {
+    Get-Password
+}elseif ($selection -eq 3) {
+    Get-Firewall
+}elseif ($selection -eq 4) {
+    Get-SystemTool
+}elseif ($selection -eq 5) {
+    Get-Update
+}elseif ($selection -eq 6) {
+    Get-MenuSelect
+}elseif ($selection -eq 7) {
+    Get-MenuSelect
+}elseif ($selection -eq 8) {
+    Get-MenuSelect
+}elseif ($selection -eq 99) {
+    Close-Program
+}else {
+    Get-MenuSelect
+}
+
+<# Switch ($selection)
 {
     1 {; Break}
-    2 {Get-Password; Break}
-    3 {Get-Firewall; Break}
-    4 {Get-SystemTool; Break}
-    5 {Get-Update; Break}
+    2 {Get-Password Pause; Break}
+    3 {Get-Firewall Pause; Break}
+    4 {Get-SystemTool Pause; Break}
+    5 {Get-Update Pause; Break}
 <#     6 {; Break}
     7 {; Break}
     8 {; Break} #>
-    99 {Close-Program; Break}
+    99 {Close-Program Pause; Break}
 }
 
-Get-MenuSelect
+Get-MenuSelect #>
