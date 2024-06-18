@@ -186,7 +186,7 @@ if ($selection -eq 1) {
 <#     6 {; Break}
     7 {; Break}
     8 {; Break} #>
-    99 {Close-Program Pause; Break}
-}
+ #   99 {Close-Program Pause; Break}
+#}
 
 Get-MenuSelect #>
