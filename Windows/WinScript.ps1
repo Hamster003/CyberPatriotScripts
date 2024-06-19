@@ -101,10 +101,36 @@ function Get-MenuSelect {
 
 function Get-User {
 
+    Clear-Host
+
+    Write-Output "1-Add User                2-Remove User"
+    Write-Output "3-Add Admin              4-Remove Admin"
+    Write-Output "5-Set Password                  99-Exit"
+    Write-Output " "
+    $usrselection = Read-Host "Make a selection"
     
-    
-    Start-Sleep -Seconds 1
-    Get-MenuSelect
+    if ($usrselection -eq 1) {
+        Add-User
+        Pause
+    }elseif ($usrselection -eq 2) {
+        Remove-User
+        Pause
+    }elseif ($usrselection -eq 3) {
+        Add-Group
+        Pause
+    }elseif ($usrselection -eq 4) {
+        Remove-Group
+        Pause
+    }elseif ($usrselection -eq 5) {
+        Set-UserPassword
+        Pause
+    }elseif ($usrselection -eq 99) {
+        Get-MenuSelect
+        Pause
+    }else {
+        Get-User
+    }
+
 }
 
 function Set-UserPassword {
@@ -115,6 +141,8 @@ function Set-UserPassword {
     $UserAccountPS | Set-LocalUser -Password $Password
     Write-Output "The password is "$Password
     
+    Start-Sleep -Seconds 1
+    Get-User
 }
 
 function Remove-User {
@@ -128,7 +156,7 @@ function Remove-User {
     }
     
     Start-Sleep -Seconds 1
-    Get-MenuSelect
+    Get-User
 }
 
 function Add-User {
@@ -137,6 +165,8 @@ function Add-User {
     New-LocalUser -Name $UserNameAdd  -Password "Cyb3rP@triot!"
     Write-Output "User "$UserNameAdd" added"
     
+    Start-Sleep -Seconds 1
+    Get-User
 }
 
 function Add-Group {
@@ -144,6 +174,8 @@ function Add-Group {
     $UserAdminAdd = "Enter the User you want to give admin"
     Add-LocalGroupMember -Group "Administrators" -Member $UserAdminAdd
     
+    Start-Sleep -Seconds 1
+    Get-User
 }
 
 function Remove-Group {
@@ -151,6 +183,8 @@ function Remove-Group {
     $UserAdminRM = "Enter the User you want to remove admin from"
     Remove-LocalGroupMember -Group "Administrators" -Member $UserAdminRM
     
+    Start-Sleep -Seconds 1
+    Get-User
 }
 
 
