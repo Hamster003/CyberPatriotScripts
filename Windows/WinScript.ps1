@@ -101,15 +101,64 @@ function Get-MenuSelect {
 
 function Get-User {
 
-    Write-Output "Not yet added"
     
+    
+    Start-Sleep -Seconds 1
     Get-MenuSelect
 }
+
+function Set-UserPassword {
+    
+    $UserNamePS = Read-Host "Enter the Username of the account to update the password of"
+    $Password = "Cyb3rP@triot!"
+    $UserAccountPS = Get-LocalUser -Name $UserNamePS
+    $UserAccountPS | Set-LocalUser -Password $Password
+    Write-Output "The password is "$Password
+    
+}
+
+function Remove-User {
+    
+    $UserNameRM = Read-Host "Enter the Username of the account you want to remove"
+    $UserNameRMConfirm = Read-Host "Are you sure you want to remove "$UserNameRM" [Y/N]"
+    if ($UserNameRMConfirm -eq "Y") {
+        Remove-LocalUser -Name $UserNameRM
+    }else {
+        Remove-User
+    }
+    
+    Start-Sleep -Seconds 1
+    Get-MenuSelect
+}
+
+function Add-User {
+    
+    $UserNameAdd = Read-Host "Enter the Username of the account you want to add"
+    New-LocalUser -Name $UserNameAdd  -Password "Cyb3rP@triot!"
+    Write-Output "User "$UserNameAdd" added"
+    
+}
+
+function Add-Group {
+    
+    $UserAdminAdd = "Enter the User you want to give admin"
+    Add-LocalGroupMember -Group "Administrators" -Member $UserAdminAdd
+    
+}
+
+function Remove-Group {
+    
+    $UserAdminRM = "Enter the User you want to remove admin from"
+    Remove-LocalGroupMember -Group "Administrators" -Member $UserAdminRM
+    
+}
+
 
 function Get-Firewall {
     
     Set-NetFirewallProfile -Enabled True #Enables Firewall
 
+    Start-Sleep -Seconds 1
     Get-MenuSelect
 }
 
@@ -118,21 +167,28 @@ function Get-Password {
     #Password policy
 
     $defminpswdage = 10
-    $minpswdage = Read-Host "Enter Minimum Password Age. Default is 10 Days"
+    $minpswdage = Read-Host "Enter Minimum Password Age. Default is "$defminpswdage" Days"
     if (!$minpswdage -eq "") {$defminpswdage = $minpswdage}
 
-    $defmaxpswdage = 10
-    $maxpswdage = Read-Host "Enter Maximum Password Age. Default is 60 Days"
+    $defmaxpswdage = 60
+    $maxpswdage = Read-Host "Enter Maximum Password Age. Default is "$defmaxpswdage" Days"
     if (!$maxpswdage -eq "") {$defmaxpswdage = $maxpswdage}
 
-    $defuniquwpswd = 10
-    $uniquwpswd = Read-Host "Enter Password History. Default is 3 passwords"
+    $defuniquwpswd = 3
+    $uniquwpswd = Read-Host "Enter Password History. Default is "$defuniquwpswd" passwords"
     if (!$uniquwpswd -eq "") {$defuniquwpswd = $uniquwpswd}
+
+    $defminpswdlen = 8
+    $uniquwpswd = Read-Host "Enter Password Length. Default is "$defminpswdlen" characters"
+    if (!$minpswdlen -eq "") {$defminpswdlen = $minpswdlen}
 
     net accounts /minpwage:$minpswdage #Min password age   default 10 days
     net accounts /maxpwage:$maxpswdage #Max password age   default 60 days
     net accounts /uniquepw:$uniquwpswd #passwords remembered for history   default 3 
+    net accounts /minpwlen:$minpswdlen #Min password length   default 8
+     #Turns Complexity Requirement On
 
+    Start-Sleep -Seconds 1
     Get-MenuSelect
 }
 
@@ -140,6 +196,7 @@ function Get-Update {
     
     Get-WindowsUpdate -AcceptAll -Install #Gets and installs windows updates
     
+    Start-Sleep -Seconds 1
     Get-MenuSelect
 }
 
@@ -160,7 +217,7 @@ function Close-Program {
 
     Clear-Host
     $restart = Read-Host "Would you like to restart [Y/N]"
-    if ($restart = "Y") {
+    if ($restart -eq "Y") {
         Write-Output "Restarting..."
         Start-Sleep -Seconds 1
         Restart-Computer
