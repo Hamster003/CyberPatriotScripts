@@ -103,14 +103,14 @@ function Get-User {
 
     Write-Output "Not yet added"
     
-    Pause
+    Get-MenuSelect
 }
 
 function Get-Firewall {
     
     Set-NetFirewallProfile -Enabled True #Enables Firewall
 
-    Pause
+    Get-MenuSelect
 }
 
 function Get-Password {
@@ -133,14 +133,14 @@ function Get-Password {
     net accounts /maxpwage:$maxpswdage #Max password age   default 60 days
     net accounts /uniquepw:$uniquwpswd #passwords remembered for history   default 3 
 
-    Pause
+    Get-MenuSelect
 }
 
 function Get-Update {
     
     Get-WindowsUpdate -AcceptAll -Install #Gets and installs windows updates
     
-    Pause
+    Get-MenuSelect
 }
 
 function Close-Program {
@@ -178,25 +178,9 @@ function Get-SystemTool {
     Write-Output "Checking System Files"
     sfc /scannow #Checks System Files
 
-    Pause
+    Get-MenuSelect
 }
 
 ############################################## MAIN SCRIPT ##############################################
 
 Get-MenuSelect
-
-
-<# Switch ($selection)
-{
-    1 {; Break}
-    2 {Get-Password Pause; Break}
-    3 {Get-Firewall Pause; Break}
-    4 {Get-SystemTool Pause; Break}
-    5 {Get-Update Pause; Break}
-<#     6 {; Break}
-    7 {; Break}
-    8 {; Break} #>
- #   99 {Close-Program Pause; Break}
-#}
-
-#Get-MenuSelect #>
