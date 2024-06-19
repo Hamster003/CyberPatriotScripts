@@ -66,6 +66,37 @@ function Get-MenuSelect {
     Write-Output " "
     $selection = Read-Host "Make a selection"
 
+    if ($selection -eq 1) {
+        Get-User
+        Pause
+    }elseif ($selection -eq 2) {
+        Get-Password
+        Pause
+    }elseif ($selection -eq 3) {
+        Get-Firewall
+        Pause
+    }elseif ($selection -eq 4) {
+        Get-SystemTool
+        Pause
+    }elseif ($selection -eq 5) {
+        Get-Update
+        Pause
+    }elseif ($selection -eq 6) {
+        Get-MenuSelect
+        Pause
+    }elseif ($selection -eq 7) {
+        Get-MenuSelect
+        Pause
+    }elseif ($selection -eq 8) {
+        Get-MenuSelect
+        Pause
+    }elseif ($selection -eq 99) {
+        Close-Program
+        Pause
+    }else {
+        Get-MenuSelect
+    }
+
 }
 
 function Get-User {
@@ -154,27 +185,6 @@ function Get-SystemTool {
 
 Get-MenuSelect
 
-if ($selection -eq 1) {
-    Get-User
-}elseif ($selection -eq 2) {
-    Get-Password
-}elseif ($selection -eq 3) {
-    Get-Firewall
-}elseif ($selection -eq 4) {
-    Get-SystemTool
-}elseif ($selection -eq 5) {
-    Get-Update
-}elseif ($selection -eq 6) {
-    Get-MenuSelect
-}elseif ($selection -eq 7) {
-    Get-MenuSelect
-}elseif ($selection -eq 8) {
-    Get-MenuSelect
-}elseif ($selection -eq 99) {
-    Close-Program
-}else {
-    Get-MenuSelect
-}
 
 <# Switch ($selection)
 {
@@ -189,4 +199,4 @@ if ($selection -eq 1) {
  #   99 {Close-Program Pause; Break}
 #}
 
-Get-MenuSelect #>
+#Get-MenuSelect #>
