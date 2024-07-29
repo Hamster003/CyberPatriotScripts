@@ -50,6 +50,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 Install-Module -Name PSWindowsUpdate #Installs the PWSH Windows Update Package so that updates can be done in the script
 Install-Module -Name SecurityPolicy #Installs a PWSH module that allows for the editing on the Local security policy
 Install-Module -Name AuditPolicy #Installs a PWSH module that allows for the editing on the GPO
+Install-Module -Name PSParseHTML #Installs a PWSH module that allows for conversion of html to txt for Read Me parsing
 
 $ProgressPreference = "Continue"
 $ErrorActionPreference = "Continue"
@@ -62,7 +63,8 @@ function Get-MenuSelect {
 
     Write-Output "1-User Managment          2-Password Policy"
     Write-Output "3-Firewall                4-System Tool"
-    Write-Output "5-Updates                 99-Exit"
+    Write-Output "5-Updates                 6-Software"
+    Write-Output "99-Exit                   "
     Write-Output " "
     $selection = Read-Host "Make a selection"
 
@@ -82,7 +84,7 @@ function Get-MenuSelect {
         Get-Update
         Pause
     }elseif ($selection -eq 6) {
-        Get-MenuSelect
+        Get-Software
         Pause
     }elseif ($selection -eq 7) {
         Get-MenuSelect
@@ -103,9 +105,9 @@ function Get-User {
 
     Clear-Host
 
-    Write-Output "1-Add User                2-Remove User"
+    Write-Output "1-Add User               2-Remove User"
     Write-Output "3-Add Admin              4-Remove Admin"
-    Write-Output "5-Set Password                  99-Exit"
+    Write-Output "5-Set Password           99-Exit"
     Write-Output " "
     $usrselection = Read-Host "Make a selection"
     
@@ -135,6 +137,8 @@ function Get-User {
 
 function Set-UserPassword {
     
+    Clear-Host
+
     $UserNamePS = Read-Host "Enter the Username of the account to update the password of"
     $Password = "Cyb3rP@triot!"
     $UserAccountPS = Get-LocalUser -Name $UserNamePS
@@ -147,6 +151,8 @@ function Set-UserPassword {
 
 function Remove-User {
     
+    Clear-Host
+
     $UserNameRM = Read-Host "Enter the Username of the account you want to remove"
     $UserNameRMConfirm = Read-Host "Are you sure you want to remove "$UserNameRM" [Y/N]"
     if ($UserNameRMConfirm -eq "Y") {
@@ -161,6 +167,8 @@ function Remove-User {
 
 function Add-User {
     
+    Clear-Host
+
     $UserNameAdd = Read-Host "Enter the Username of the account you want to add"
     New-LocalUser -Name $UserNameAdd  -Password "Cyb3rP@triot!"
     Write-Output "User "$UserNameAdd" added"
@@ -171,6 +179,8 @@ function Add-User {
 
 function Add-Group {
     
+    Clear-Host
+
     $UserAdminAdd = "Enter the User you want to give admin"
     Add-LocalGroupMember -Group "Administrators" -Member $UserAdminAdd
     
@@ -180,6 +190,8 @@ function Add-Group {
 
 function Remove-Group {
     
+    Clear-Host
+
     $UserAdminRM = "Enter the User you want to remove admin from"
     Remove-LocalGroupMember -Group "Administrators" -Member $UserAdminRM
     
@@ -190,6 +202,8 @@ function Remove-Group {
 
 function Get-Firewall {
     
+    Clear-Host
+
     Set-NetFirewallProfile -Enabled True #Enables Firewall
 
     Start-Sleep -Seconds 1
@@ -197,6 +211,8 @@ function Get-Firewall {
 }
 
 function Get-Password {
+
+    Clear-Host
 
     #Password policy
 
@@ -228,14 +244,63 @@ function Get-Password {
 
 function Get-Update {
     
+    Clear-Host
+
     Get-WindowsUpdate -AcceptAll -Install #Gets and installs windows updates
     
     Start-Sleep -Seconds 1
     Get-MenuSelect
 }
 
+function Get-SystemTool {
+
+    Clear-Host
+
+    Write-Output "Checking System Files"
+    sfc /scannow #Checks System Files
+
+    Get-MenuSelect
+}
+
+function Get-Software {
+    
+    Clear-Host
+
+    Write-Output "Enter way you want to install software. "
+    Write-Output "1-Chocolaty                     2-WinGet"
+    Write-Output "3-EXE                           99-Exit"
+    if ($selsoftware -eq 1) {
+        Get-SoftwareChoco
+        Pause
+    }elseif ($selsoftware -eq 2) {
+        Get-SoftwareWinGet
+        Pause
+    }elseif ($selsoftware -eq 3) {
+        Write-Output "Come back to script once you're done installing software. "
+        Pause
+    }elseif ($selsoftware -eq 99) {
+        Get-MenuSelect
+    }else {
+        Get-Software
+    }
+    
+}
+function Get-SoftwareChoco {
+    
+    Clear-Host
+
+    Write-Output "Enter software to download with Chocolaty. "
+    $software = Read-Host "Please enter each software with comma's between them with no spaces. "
+
+    choco -y $software
+    
+    
+}
+
 function Close-Program {
     
+    Clear-Host
+
     Write-Output "Removing Installed Modules"
 
     $ProgressPreference = "SilentlyContinue" #Hides Istall-Module output
