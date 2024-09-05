@@ -41,8 +41,8 @@ Write-Output " /_/    \_\_|  \_____|     \/  \/   |_|_| |_|\__,_|\___/ \_/\_/ |_
 Write-Output "                                                                                         | |        "
 Write-Output "                                                                                         |_|        "
 
-$ProgressPreference = "SilentlyContinue" #Hides Istall-Module output
-$ErrorActionPreference = 'SilentlyContinue' #Hides errors
+$ProgressPreference = "SilentlyContinue" #Hides Install-Module output
+$ErrorActionPreference = 'SilentlyContinue' #Hides errors 
 
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) > $null
 # ^Installs Chocolaty for software installs
