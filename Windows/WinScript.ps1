@@ -112,10 +112,10 @@ $ErrorActionPreference = 'SilentlyContinue' #Hides errors
 Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1')) > $null
 # ^Installs Chocolaty for software installs
 
-Install-Module -Name PSWindowsUpdate #Installs the PWSH Windows Update Package so that updates can be done in the script
-Install-Module -Name SecurityPolicy #Installs a PWSH module that allows for the editing on the Local security policy
-Install-Module -Name AuditPolicy #Installs a PWSH module that allows for the editing on the GPO
-Install-Module -Name PSParseHTML #Installs a PWSH module that allows for conversion of html to txt for Read Me parsing
+Install-Module -Name PSWindowsUpdate -AcceptAll #Installs the PWSH Windows Update Package so that updates can be done in the script
+Install-Module -Name SecurityPolicy -AcceptAll #Installs a PWSH module that allows for the editing on the Local security policy
+Install-Module -Name AuditPolicy -AcceptAll #Installs a PWSH module that allows for the editing on the GPO
+Install-Module -Name PSParseHTML -AcceptAll #Installs a PWSH module that allows for conversion of html to txt for Read Me parsing
 
 $ProgressPreference = "Continue"
 $ErrorActionPreference = "Continue"
@@ -267,15 +267,18 @@ function Remove-Group {
     Start-Sleep -Seconds 1
     Get-User
 }
-###Set-UserList###
+###Set-UserList#########################################################################################################################################################
+function Set-AllowedACC{
+    
+}
+
 function Get-AuthAdmin {
     $AuthAdminList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Admins" -WindowTitle "ADMIN" -DefaultText "Paste here "
         if ($AuthAdminList -eq $null) {
             Write-Host "You Canceled"
             Get-AuthAdmin
         }else{ 
-            Write-Output "Admins "$AuthAdminList
-            Write-Output "Users "$AuthUserList
+            Set-AllowedACC
         }
 }
 
@@ -294,10 +297,12 @@ function Set-UserList {
 
     Get-AuthUser
 
+
     Start-Sleep -Seconds 1
     Get-MenuSelect
 }
 
+###Get-Firewall############################################################################################################################################################
 function Get-Firewall {
     
     Clear-Host
