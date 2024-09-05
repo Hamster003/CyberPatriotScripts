@@ -20,6 +20,71 @@ if ((Test-Admin) -eq $false)  {
     exit
 }
 
+###Input box function (https://blog.danskingdom.com/powershell-multi-line-input-box-dialog-open-file-dialog-folder-browser-dialog-input-box-and-message-box/)###
+function Read-MultiLineInputBoxDialog([string]$Message, [string]$WindowTitle, [string]$DefaultText)
+{
+
+    
+    Add-Type -AssemblyName System.Drawing
+    Add-Type -AssemblyName System.Windows.Forms
+
+    # Create the Label.
+    $label = New-Object System.Windows.Forms.Label
+    $label.Location = New-Object System.Drawing.Size(10,10)
+    $label.Size = New-Object System.Drawing.Size(280,20)
+    $label.AutoSize = $true
+    $label.Text = $Message
+
+    # Create the TextBox used to capture the user's text.
+    $textBox = New-Object System.Windows.Forms.TextBox
+    $textBox.Location = New-Object System.Drawing.Size(10,40)
+    $textBox.Size = New-Object System.Drawing.Size(575,200)
+    $textBox.AcceptsReturn = $true
+    $textBox.AcceptsTab = $false
+    $textBox.Multiline = $true
+    $textBox.ScrollBars = 'Both'
+    $textBox.Text = $DefaultText
+
+    # Create the OK button.
+    $okButton = New-Object System.Windows.Forms.Button
+    $okButton.Location = New-Object System.Drawing.Size(415,250)
+    $okButton.Size = New-Object System.Drawing.Size(75,25)
+    $okButton.Text = "OK"
+    $okButton.Add_Click({ $form.Tag = $textBox.Text; $form.Close() })
+
+    # Create the Cancel button.
+    $cancelButton = New-Object System.Windows.Forms.Button
+    $cancelButton.Location = New-Object System.Drawing.Size(510,250)
+    $cancelButton.Size = New-Object System.Drawing.Size(75,25)
+    $cancelButton.Text = "Cancel"
+    $cancelButton.Add_Click({ $form.Tag = $null; $form.Close() })
+
+    # Create the form.
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = $WindowTitle
+    $form.Size = New-Object System.Drawing.Size(610,320)
+    $form.FormBorderStyle = 'FixedSingle'
+    $form.StartPosition = "CenterScreen"
+    $form.AutoSizeMode = 'GrowAndShrink'
+    $form.Topmost = $True
+    $form.AcceptButton = $okButton
+    $form.CancelButton = $cancelButton
+    $form.ShowInTaskbar = $true
+
+    # Add all of the controls to the form.
+    $form.Controls.Add($label)
+    $form.Controls.Add($textBox)
+    $form.Controls.Add($okButton)
+    $form.Controls.Add($cancelButton)
+
+    # Initialize and show the form.
+    $form.Add_Shown({$form.Activate()})
+    $form.ShowDialog() > $null  # Trash the text of the button that was clicked.
+
+    # Return the text that the user entered.
+    return $form.Tag
+}
+
 ####Functions####
 function RegEdit {
     If (-NOT (Test-Path $RegistryPath)) {
@@ -107,7 +172,8 @@ function Get-User {
 
     Write-Output "1-Add User               2-Remove User"
     Write-Output "3-Add Admin              4-Remove Admin"
-    Write-Output "5-Set Password           99-Exit"
+    Write-Output "5-Set Password           6-Audit Users from list"
+    Write-Output "99-Exit"
     Write-Output " "
     $usrselection = Read-Host "Make a selection"
     
@@ -125,6 +191,9 @@ function Get-User {
         Pause
     }elseif ($usrselection -eq 5) {
         Set-UserPassword
+        Pause
+    }elseif ($usrselection -eq 6) {
+        Set-UserList
         Pause
     }elseif ($usrselection -eq 99) {
         Get-MenuSelect
@@ -181,7 +250,7 @@ function Add-Group {
     
     Clear-Host
 
-    $UserAdminAdd = "Enter the User you want to give admin"
+    $UserAdminAdd = Read-Host "Enter the User you want to give admin"
     Add-LocalGroupMember -Group "Administrators" -Member $UserAdminAdd
     
     Start-Sleep -Seconds 1
@@ -192,13 +261,37 @@ function Remove-Group {
     
     Clear-Host
 
-    $UserAdminRM = "Enter the User you want to remove admin from"
+    $UserAdminRM = Read-Host "Enter the User you want to remove admin from"
     Remove-LocalGroupMember -Group "Administrators" -Member $UserAdminRM
     
     Start-Sleep -Seconds 1
     Get-User
 }
 
+function Set-UserList {
+
+    Clear-Host
+
+    function Get-AuthAdmin
+        $AuthAdminList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Admins" -WindowTitle "ADMIN" -DefaultText "Paste here "
+            if ($multiLineText -eq $null) {
+                Write-Host "You Canceled"
+                Get-AuthAdmin
+            }else{ 
+                Write-Output "Admins "$AuthAdminList
+                Write-Output "Users "$AuthUserList
+            }
+
+    function Get-AuthUser
+        $AuthUserList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Users" -WindowTitle "USER" -DefaultText "Paste here "
+        if ($multiLineText -eq $null) {
+            Write-Host "You Canceled"
+            Get-AuthUser
+        }else{ 
+            Get-AuthAdmin
+        }
+
+}
 
 function Get-Firewall {
     
@@ -269,6 +362,7 @@ function Get-Software {
     Write-Output "Enter way you want to install software. "
     Write-Output "1-Chocolaty                     2-WinGet"
     Write-Output "3-EXE                           99-Exit"
+    $selsoftware = Read-Host "Make a selection"
     if ($selsoftware -eq 1) {
         Get-SoftwareChoco
         Pause
