@@ -267,30 +267,35 @@ function Remove-Group {
     Start-Sleep -Seconds 1
     Get-User
 }
+###Set-UserList###
+function Get-AuthAdmin {
+    $AuthAdminList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Admins" -WindowTitle "ADMIN" -DefaultText "Paste here "
+        if ($AuthAdminList -eq $null) {
+            Write-Host "You Canceled"
+            Get-AuthAdmin
+        }else{ 
+            Write-Output "Admins "$AuthAdminList
+            Write-Output "Users "$AuthUserList
+        }
+}
 
+function Get-AuthUser {
+    $AuthUserList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Users" -WindowTitle "USER" -DefaultText "Paste here "
+    if ($AuthUserList -eq $null) {
+        Write-Host "You Canceled"
+        Get-AuthUser
+    }else{ 
+        Get-AuthAdmin
+    }
+}
 function Set-UserList {
 
     Clear-Host
 
-    function Get-AuthAdmin
-        $AuthAdminList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Admins" -WindowTitle "ADMIN" -DefaultText "Paste here "
-            if ($multiLineText -eq $null) {
-                Write-Host "You Canceled"
-                Get-AuthAdmin
-            }else{ 
-                Write-Output "Admins "$AuthAdminList
-                Write-Output "Users "$AuthUserList
-            }
+    Get-AuthUser
 
-    function Get-AuthUser
-        $AuthUserList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Users" -WindowTitle "USER" -DefaultText "Paste here "
-        if ($multiLineText -eq $null) {
-            Write-Host "You Canceled"
-            Get-AuthUser
-        }else{ 
-            Get-AuthAdmin
-        }
-
+    Start-Sleep -Seconds 1
+    Get-MenuSelect
 }
 
 function Get-Firewall {
