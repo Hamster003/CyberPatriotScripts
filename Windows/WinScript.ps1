@@ -280,7 +280,7 @@ function Set-UserAllowed{
     Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
     Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
     Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
-    
+
 }
 
 function Get-AuthAdmin {
@@ -290,11 +290,12 @@ function Get-AuthAdmin {
             Get-AuthAdmin
         }else{ 
 
-            $AuthAdminList | Out-File -FilePath "$PSScriptRoot\AdminList.text"
+            $AuthAdminList | Out-File -FilePath "$PSScriptRoot\AdminList.txt"
 
-            $fileContent = Get-Content -Path "$PSScriptRoot\AdminList.text"
+            $fileContent = Get-Content -Path "$PSScriptRoot\AdminList.txt"
             foreach ($line in $fileContent) {
             # Process each line
+            New-LocalGroup -Name "AuthAdmin"
             Add-LocalGroupMember -Group "AuthAdmin" -Member $line
             }
             
@@ -309,11 +310,12 @@ function Get-AuthUser {
         Get-AuthUser
     }else{ 
 
-        $AuthUserList | Out-File -FilePath "$PSScriptRoot\UserList.text"
+        $AuthUserList | Out-File -FilePath "$PSScriptRoot\UserList.txt"
 
-        $fileContent = Get-Content -Path "$PSScriptRoot\UserList.text"
+        $fileContent = Get-Content -Path "$PSScriptRoot\UserList.txt"
         foreach ($line in $fileContent) {
         # Process each line
+        New-LocalGroup -Name "AuthUser"
         Add-LocalGroupMember -Group "AuthUser" -Member $line
         }
 
