@@ -320,6 +320,7 @@ function Set-UserAllowed{
 
     Remove-LocalGroup -Name "AuthAdmin"
     Remove-LocalGroup -Name "AuthUser"
+    Remove-LocalGroup -Name "Auth"
 
 }
 
