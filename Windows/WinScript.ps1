@@ -117,6 +117,8 @@ Install-Module -Name SecurityPolicy -AcceptAll #Installs a PWSH module that allo
 Install-Module -Name AuditPolicy -AcceptAll #Installs a PWSH module that allows for the editing on the GPO
 Install-Module -Name PSParseHTML -AcceptAll #Installs a PWSH module that allows for conversion of html to txt for Read Me parsing
 
+winget install -e --id Python.Python.3.11 #Installs Python
+
 $ProgressPreference = "Continue"
 $ErrorActionPreference = "Continue"
 
@@ -269,22 +271,28 @@ function Remove-Group {
 }
 ###Set-UserList#########################################################################################################################################################
 function Set-AllowedACC{
-    
+    if ($User -ne $AuthAdminList -or $AuthUserList) {
+        
+        $User -eq $UserNameRM
+        Remove-LocalUser -Name $UserNameRM
+    }
 }
 
 function Get-AuthAdmin {
     $AuthAdminList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Admins" -WindowTitle "ADMIN" -DefaultText "Paste here "
-        if ($AuthAdminList -eq $null) {
+        if ($null -eq $AuthAdminList) {
             Write-Host "You Canceled"
             Get-AuthAdmin
         }else{ 
+            Add-LocalGroupMember -Group "AuthUser" -Member $AuthUserList
+            Add-LocalGroupMember -Group "AuthAdmin" -Member $AuthAdminList
             Set-AllowedACC
         }
 }
 
 function Get-AuthUser {
     $AuthUserList = Read-MultiLineInputBoxDialog -Message "Please enter Authorized Users" -WindowTitle "USER" -DefaultText "Paste here "
-    if ($AuthUserList -eq $null) {
+    if ($null -eq $AuthUserList) {
         Write-Host "You Canceled"
         Get-AuthUser
     }else{ 
@@ -444,3 +452,22 @@ function Get-SystemTool {
 ############################################## MAIN SCRIPT ##############################################
 
 Get-MenuSelect
+
+
+Write-Output "Removing programs..."
+Pause
+
+$ProgressPreference = "SilentlyContinue" #Hides Install-Module output
+$ErrorActionPreference = 'SilentlyContinue' #Hides errors 
+
+winget uninstall --id Python.Python.3.11
+Remove-Module -Name PSWindowsUpdate -AcceptAll
+Remove-Module -Name SecurityPolicy -AcceptAll
+Remove-Module -Name AuditPolicy -AcceptAll
+Remove-Module -Name PSParseHTML -AcceptAll 
+
+$ChocoRMPath="$PSScriptRoot\WinScript.ps1" #Sets path variable to the location of the Choco RM script
+&$ChocoRMPath #Runs Choco RM script
+
+$ProgressPreference = "Continue"
+$ErrorActionPreference = "Continue"
