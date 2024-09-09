@@ -276,9 +276,11 @@ function Remove-Group {
 ###Set-UserList#########################################################################################################################################################
 function Set-UserAllowed{
 
-    $AccountsToKeep = @('AuthAdmin','AuthUser')
-    Remove-LocalUser -ne $AccountsToKeep -WhatIf
-    
+    $AccountsToKeep = @('AuthAdmin','AuthUser') 
+    Get-CimInstance -Class Win32_UserProfile | Where-Object { $_.LocalPath -like "*username*" -notin $AccountsToKeep }| Remove-CimInstance
+    $AccountsToRemove = Where-Object 
+    Remove-LocalUser -Name $AccountsToRemove
+
     Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
     Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
     Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
@@ -295,9 +297,9 @@ function Get-AuthAdmin {
             $AuthAdminList | Out-File -FilePath "$PSScriptRoot\AdminList.txt"
 
             $fileContent = Get-Content -Path "$PSScriptRoot\AdminList.txt"
+            New-LocalGroup -Name "AuthAdmin"
             foreach ($line in $fileContent) {
             # Process each line
-            New-LocalGroup -Name "AuthAdmin"
             Add-LocalGroupMember -Group "AuthAdmin" -Member $line
             }
             
@@ -315,9 +317,9 @@ function Get-AuthUser {
         $AuthUserList | Out-File -FilePath "$PSScriptRoot\UserList.txt"
 
         $fileContent = Get-Content -Path "$PSScriptRoot\UserList.txt"
+        New-LocalGroup -Name "AuthUser"
         foreach ($line in $fileContent) {
         # Process each line
-        New-LocalGroup -Name "AuthUser"
         Add-LocalGroupMember -Group "AuthUser" -Member $line
         }
 
