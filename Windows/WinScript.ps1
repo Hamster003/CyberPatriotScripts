@@ -122,13 +122,15 @@ winget install -e --id Python.Python.3.11 #Installs Python
 $ProgressPreference = "Continue"
 $ErrorActionPreference = "Continue"
 
+$UserName = Read-Host "Enter your user name here"
+
 ############################################### Function ################################################
 
 function Get-MenuSelect {
 
     Clear-Host
 
-    $UserName = Read-Host "Enter your user name here"
+    
 
     Write-Output "1-User Managment          2-Password Policy"
     Write-Output "3-Firewall                4-System Tool"
@@ -275,7 +277,7 @@ function Remove-Group {
 function Set-UserAllowed{
 
     $AccountsToKeep = @('AuthAdmin','AuthUser')
-    Get-CimInstance -Class Win32_UserProfile | Where-Object { $_.LocalPath.split('\')[-1] -notin $AccountsToKeep } | Remove-CimInstance
+    Remove-LocalUser -ne $AccountsToKeep -WhatIf
     
     Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
     Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
