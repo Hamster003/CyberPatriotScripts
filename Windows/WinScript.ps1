@@ -277,13 +277,38 @@ function Remove-Group {
 function Set-UserAllowed{
 
     $AccountsToKeep = @('AuthAdmin','AuthUser') 
-    Get-CimInstance -Class Win32_UserProfile | Where-Object { $_.LocalPath -like "*username*" -notin $AccountsToKeep }| Remove-CimInstance
-    $AccountsToRemove = Where-Object 
-    Remove-LocalUser -Name $AccountsToRemove
+    
+    New-LocalGroup -Name "AccountsToRemove"
+
+    # Define the name of the local group you want to add users to
+    $targetGroup = "AccountstoRemove"
+
+    # Get the list of all local users
+        $allUsers = Get-LocalUser
+
+    # Get the list of local administrators
+    $AccountsToKeep = Get-LocalGroup -Name "Auth"
+    $AuthUserAccount = Get-LocalGroupMember -Group $AccountsToKeep | Where-Object { $_.ObjectClass -eq "User" }
+
+    # Extract the names of admin users for quick lookup
+    $AuthUserNames = $AuthUserAccount | Select-Object -ExpandProperty Name
+
+    foreach ($user in $allUsers) {
+        # Check if the user is not an administrator
+        if ($AuthUserNames -notcontains $user.Name) {
+            # Add the user to the target group
+            Add-LocalGroupMember -Group $targetGroup -Member $user.Name
+        }
+    }
+    
+    Remove-LocalUser -Group "AccountsToRemove"
 
     Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
     Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
     Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
+
+    Remove-LocalGroup -Name "AuthAdmin"
+    Remove-LocalGroup -Name "AuthUser"
 
 }
 
@@ -301,6 +326,7 @@ function Get-AuthAdmin {
             foreach ($line in $fileContent) {
             # Process each line
             Add-LocalGroupMember -Group "AuthAdmin" -Member $line
+            Add-LocalGroupMember -Group "Auth" -Member $line
             }
             
          Set-UserAllowed
@@ -318,9 +344,11 @@ function Get-AuthUser {
 
         $fileContent = Get-Content -Path "$PSScriptRoot\UserList.txt"
         New-LocalGroup -Name "AuthUser"
+        New-LocalGroup -Name "Auth"
         foreach ($line in $fileContent) {
         # Process each line
         Add-LocalGroupMember -Group "AuthUser" -Member $line
+        Add-LocalGroupMember -Group "Auth" -Member $line
         }
 
         Get-AuthAdmin
