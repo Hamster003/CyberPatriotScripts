@@ -275,7 +275,7 @@ function Remove-Group {
 }
 ###Set-UserList#########################################################################################################################################################
 function Set-UserAllowed{
-    
+
     Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
     Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
     Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
@@ -302,8 +302,21 @@ function Set-UserAllowed{
             Add-LocalGroupMember -Group $targetGroup -Member $user.Name
         }
     }
-    
-    Remove-LocalUser -Group "AccountsToRemove"
+
+        # Define the name of the local group whose members will be deleted
+    $groupName = "AccountstoRemove"
+
+    # Get the list of all members in the local group
+    $groupMembers = Get-LocalGroupMember -Group $groupName
+
+    foreach ($member in $groupMembers) {
+        # Check if the member is a user (not a group or other type of account)
+        if ($member.ObjectClass -eq "User") {
+            # Delete the local user
+            Remove-LocalUser -Name $member.Name
+        }
+    }
+
 
     Remove-LocalGroup -Name "AuthAdmin"
     Remove-LocalGroup -Name "AuthUser"
