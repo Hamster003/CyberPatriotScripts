@@ -275,9 +275,11 @@ function Remove-Group {
 }
 ###Set-UserList#########################################################################################################################################################
 function Set-UserAllowed{
-
-    $AccountsToKeep = @('AuthAdmin','AuthUser') 
     
+    Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
+    Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
+    Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
+
     New-LocalGroup -Name "AccountsToRemove"
 
     # Define the name of the local group you want to add users to
@@ -302,10 +304,6 @@ function Set-UserAllowed{
     }
     
     Remove-LocalUser -Group "AccountsToRemove"
-
-    Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
-    Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
-    Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
 
     Remove-LocalGroup -Name "AuthAdmin"
     Remove-LocalGroup -Name "AuthUser"
