@@ -128,6 +128,8 @@ function Get-MenuSelect {
 
     Clear-Host
 
+    $UserName = Read-Host "Enter your user name here"
+
     Write-Output "1-User Managment          2-Password Policy"
     Write-Output "3-Firewall                4-System Tool"
     Write-Output "5-Updates                 6-Software"
@@ -270,12 +272,15 @@ function Remove-Group {
     Get-User
 }
 ###Set-UserList#########################################################################################################################################################
-function Set-AllowedACC{
-    if ($User -ne $AuthAdminList -or $AuthUserList) {
-        
-        $User -eq $UserNameRM
-        Remove-LocalUser -Name $UserNameRM
-    }
+function Set-UserAllowed{
+
+    $AccountsToKeep = @('AuthAdmin','AuthUser')
+    Get-CimInstance -Class Win32_UserProfile | Where-Object { $_.LocalPath.split('\')[-1] -notin $AccountsToKeep } | Remove-CimInstance
+    
+    Remove-LocalGroupMember -Group "AuthAdmin" -Member $UserName
+    Remove-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
+    Add-LocalGroupMember -Group "Administrators" -Member "AuthAdmin"
+    
 }
 
 function Get-AuthAdmin {
@@ -284,9 +289,16 @@ function Get-AuthAdmin {
             Write-Host "You Canceled"
             Get-AuthAdmin
         }else{ 
-            Add-LocalGroupMember -Group "AuthUser" -Member $AuthUserList
-            Add-LocalGroupMember -Group "AuthAdmin" -Member $AuthAdminList
-            Set-AllowedACC
+
+            $AuthAdminList | Out-File -FilePath "$PSScriptRoot\AdminList.text"
+
+            $fileContent = Get-Content -Path "$PSScriptRoot\AdminList.text"
+            foreach ($line in $fileContent) {
+            # Process each line
+            Add-LocalGroupMember -Group "AuthAdmin" -Member $line
+            }
+            
+         Set-UserAllowed
         }
 }
 
@@ -296,6 +308,15 @@ function Get-AuthUser {
         Write-Host "You Canceled"
         Get-AuthUser
     }else{ 
+
+        $AuthUserList | Out-File -FilePath "$PSScriptRoot\UserList.text"
+
+        $fileContent = Get-Content -Path "$PSScriptRoot\UserList.text"
+        foreach ($line in $fileContent) {
+        # Process each line
+        Add-LocalGroupMember -Group "AuthUser" -Member $line
+        }
+
         Get-AuthAdmin
     }
 }
