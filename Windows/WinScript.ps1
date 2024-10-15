@@ -283,7 +283,7 @@ function Set-UserAllowed{
     New-LocalGroup -Name "AccountsToRemove"
 
     # Define the name of the local group you want to add users to
-    $targetGroup = "AccountstoRemove"
+    $AccountsToRM = "AccountsToRemove"
 
     # Get the list of all local users
         $allUsers = Get-LocalUser
@@ -299,15 +299,13 @@ function Set-UserAllowed{
         # Check if the user is not an administrator
         if ($AuthUserNames -notcontains $user.Name) {
             # Add the user to the target group
-            Add-LocalGroupMember -Group $targetGroup -Member $user.Name
+            Add-LocalGroupMember -Group $AccountsToRM -Member $user.Name
         }
     }
 
-        # Define the name of the local group whose members will be deleted
-    $groupName = "AccountstoRemove"
 
     # Get the list of all members in the local group
-    $groupMembers = Get-LocalGroupMember -Group $groupName
+    $groupMembers = Get-LocalGroupMember -Group $AccountsToRM
 
     foreach ($member in $groupMembers) {
         # Check if the member is a user (not a group or other type of account)
