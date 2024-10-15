@@ -178,7 +178,7 @@ function Get-User {
 
     Write-Output "1-Add User               2-Remove User"
     Write-Output "3-Add Admin              4-Remove Admin"
-    Write-Output "5-Set Password           6-Audit Users from list"
+    Write-Output "5-Set Password           6-Audit Users from list DONT USE"
     Write-Output "99-Exit"
     Write-Output " "
     $usrselection = Read-Host "Make a selection"
