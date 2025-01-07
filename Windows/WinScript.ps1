@@ -511,199 +511,201 @@ function Close-Program {
     }
     
     Pause
-}
+    }
 
-function Get-SystemTool {
+    function Get-SystemTool {
 
-    Write-Output "Checking System Files"
-    sfc /scannow #Checks System Files
+        Write-Output "Checking System Files"
+        sfc /scannow #Checks System Files
 
-    Get-MenuSelect
-}
+        Get-MenuSelect
+    }
 
 Get-User {
-    #-----------------------------------------------------
+#-----------------------------------------------------
 # User Shit!!!
 #-----------------------------------------------------
 
-# Function to get a Yes/No response
-Function Get-YesNo($prompt) {
-    do {
-        $response = Read-Host "$prompt (Y/N)"
-    } until ($response -match '^[YyNn]$')
-    return $response.ToUpper()
-}
-
-# Function to automatically set a secure password for a user
-Function Set-SecurePassword($username) {
-    $Password = ConvertTo-SecureString -String "CyberPatri0t!?@" -AsPlainText -Force
-    $user = Get-LocalUser -Name $username
-    try {
-        $user | Set-LocalUser -Password $Password
-    } catch {
-        Write-Host "Failed to set password for user '$username'. Error: $($_.Exception.Message)"
+    # Function to get a Yes/No response
+    Function Get-YesNo($prompt) {
+        do {
+            $response = Read-Host "$prompt (Y/N)"
+        } until ($response -match '^[YyNn]$')
+        return $response.ToUpper()
     }
-}
 
-# Function to remove unauthorized users
-Function Remove-UnauthorizedUser($username) {
-    if ($username -in @("DefaultAccount", "WDAGUtilityAccount", "Administrator")) {
-        Write-Host "Skipping removal of system account '$username'."
-        return
+    # Function to automatically set a secure password for a user
+    Function Set-SecurePassword($username) {
+        $Password = ConvertTo-SecureString -String "CyberPatri0t!?@" -AsPlainText -Force
+        $user = Get-LocalUser -Name $username
+        try {
+            $user | Set-LocalUser -Password $Password
+        } catch {
+            Write-Host "Failed to set password for user '$username'. Error: $($_.Exception.Message)"
+        }
     }
-    try {
-        Remove-LocalUser -Name $username -ErrorAction Stop
-        Write-Host "User '$username' has been removed successfully."
-    } catch {
-        Write-Host "Failed to remove user '$username'. Error: $($_.Exception.Message)"
-    }
-}
 
-# Function to create a group and add users to the group
-Function Manage-Group($groupName, $groupMembers) {
-    $group = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
-    if ($group) {
-        Write-Host "Group '$groupName' already exists."
-        $editGroup = Get-YesNo "Do you want to edit the users within the group?"
-        if ($editGroup -eq "Y") {
-            Write-Host "Removing all users from the group '$groupName'..."
-            Get-LocalGroupMember -Group $groupName | ForEach-Object {
-                Remove-LocalGroupMember -Group $groupName -Member $_.Name
+    # Function to remove unauthorized users
+    Function Remove-UnauthorizedUser($username) {
+        if ($username -in @("DefaultAccount", "WDAGUtilityAccount", "Administrator")) {
+            Write-Host "Skipping removal of system account '$username'."
+            return
+        }
+        try {
+            Remove-LocalUser -Name $username -ErrorAction Stop
+            Write-Host "User '$username' has been removed successfully."
+        } catch {
+            Write-Host "Failed to remove user '$username'. Error: $($_.Exception.Message)"
+        }
+    }
+
+    # Function to create a group and add users to the group
+    Function Manage-Group($groupName, $groupMembers) {
+        $group = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
+        if ($group) {
+            Write-Host "Group '$groupName' already exists."
+            $editGroup = Get-YesNo "Do you want to edit the users within the group?"
+            if ($editGroup -eq "Y") {
+                Write-Host "Removing all users from the group '$groupName'..."
+                Get-LocalGroupMember -Group $groupName | ForEach-Object {
+                    Remove-LocalGroupMember -Group $groupName -Member $_.Name
+                }
+                Write-Host "Adding specified users to the group '$groupName'..."
+                foreach ($user in $groupMembers) {
+                    try {
+                        Add-LocalGroupMember -Group $groupName -Member $user -ErrorAction Stop
+                    } catch {
+                        Write-Host "Failed to add user '$user' to group '$groupName'. Error: $($_.Exception.Message)"
+                    }
+                }
             }
-            Write-Host "Adding specified users to the group '$groupName'..."
-            foreach ($user in $groupMembers) {
-                try {
+        } else {
+            Write-Host "Creating group '$groupName'..."
+            try {
+                New-LocalGroup -Name $groupName -ErrorAction Stop
+                Write-Host "Adding specified users to the group '$groupName'..."
+                foreach ($user in $groupMembers) {
                     Add-LocalGroupMember -Group $groupName -Member $user -ErrorAction Stop
+                }
+            } catch {
+                Write-Host "Failed to create group '$groupName'. Error: $($_.Exception.Message)"
+            }
+        }
+    }
+
+
+
+    # Manage local user accounts if needed
+    $ManageUsers = Get-YesNo "Do you need to manage local user accounts?"
+
+    If ($ManageUsers -eq "Y") {
+        Write-Host "Managing local user accounts..."
+
+        # Prompt for authorized users
+        $AuthorizedUsers = (Read-Host "Enter authorized user account names, separated by commas (e.g., User1,User2)").Split(',').Trim()
+
+        # Get all local users excluding built-in accounts
+        $LocalUsers = Get-LocalUser | Where-Object { $_.Name -ne "Administrator" -and $_.Name -ne "Guest" }
+
+        # Set secure passwords for authorized users
+        $AuthorizedUsers = $AuthorizedUsers | Sort-Object
+        $LocalUsers = $LocalUsers | Sort-Object Name
+
+        foreach ($User in $LocalUsers) {
+            if ($User.Name -in $AuthorizedUsers) {
+                Write-Host "User '$($User.Name)' is authorized. Setting a secure password..."
+                Set-SecurePassword -username $User.Name
+            } else {
+                Write-Host "User '$($User.Name)' is not authorized. Removing..."
+                Remove-UnauthorizedUser -username $User.Name
+            }
+        }
+
+        # Prompt for authorized admin accounts
+        Write-Host "Configuring Administrators group membership..."
+        $AuthorizedAdmins = (Read-Host "Enter authorized admin account names, separated by commas (e.g., Admin1,Admin2)").Split(',').Trim()
+
+        # Get current Administrators group members
+        $AdministratorsGroup = Get-LocalGroupMember -Group "Administrators" | Select-Object -ExpandProperty Name
+
+        # Remove unauthorized admins
+        foreach ($admin in $AdministratorsGroup) {
+            if ($admin -notin $AuthorizedAdmins -and $admin -ne "Administrator") {
+                Write-Host "Removing unauthorized admin account: $admin"
+                try {
+                    Remove-LocalGroupMember -Group "Administrators" -Member $admin -ErrorAction Stop
                 } catch {
-                    Write-Host "Failed to add user '$user' to group '$groupName'. Error: $($_.Exception.Message)"
+                    Write-Host "Failed to remove admin account '$admin'. Error: $($_.Exception.Message)"
                 }
             }
         }
-    } else {
-        Write-Host "Creating group '$groupName'..."
-        try {
-            New-LocalGroup -Name $groupName -ErrorAction Stop
-            Write-Host "Adding specified users to the group '$groupName'..."
-            foreach ($user in $groupMembers) {
-                Add-LocalGroupMember -Group $groupName -Member $user -ErrorAction Stop
+
+        # Ensure authorized admins are in the Administrators group
+        foreach ($admin in $AuthorizedAdmins) {
+            if ($AdministratorsGroup -notcontains $admin) {
+                Write-Host "Adding user '$admin' to the Administrators group."
+                try {
+                    Add-LocalGroupMember -Group "Administrators" -Member $admin -ErrorAction Stop
+                } catch {
+                    Write-Host "Failed to add user '$admin' to Administrators group. Error: $($_.Exception.Message)"
+                }
             }
-        } catch {
-            Write-Host "Failed to create group '$groupName'. Error: $($_.Exception.Message)"
         }
-    }
-}
 
-# Manage local user accounts if needed
-$ManageUsers = Get-YesNo "Do you need to manage local user accounts?"
+        # Ensure authorized users are not administrators if not specified
+        foreach ($User in $AuthorizedUsers) {
+            if ($User -notin $AuthorizedAdmins -and $AdministratorsGroup -contains $User) {
+                Write-Host "Removing user '$User' from the Administrators group."
+                try {
+                    Remove-LocalGroupMember -Group "Administrators" -Member $User -ErrorAction Stop
+                } catch {
+                    Write-Host "Failed to remove user '$User' from Administrators group. Error: $($_.Exception.Message)"
+                }
+            }
+        }
 
-If ($ManageUsers -eq "Y") {
-    Write-Host "Managing local user accounts..."
+        # Disable the Guest account
+        $GuestAccount = Get-LocalUser -Name "Guest" -ErrorAction SilentlyContinue
+        If ($GuestAccount -and -not $GuestAccount.Enabled) {
+            Write-Host "Disabling Guest account..."
+            Disable-LocalUser -Name "Guest"
+        }
 
-    # Prompt for authorized users
-    $AuthorizedUsers = (Read-Host "Enter authorized user account names, separated by commas (e.g., User1,User2)").Split(',').Trim()
+        # Define the group name
+        $groupName = Read-Host "Enter the group name"
 
-    # Get all local users excluding built-in accounts
-    $LocalUsers = Get-LocalUser | Where-Object { $_.Name -ne "Administrator" -and $_.Name -ne "Guest" }
+        # Check if the group already exists
+        $groupExists = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
 
-    # Set secure passwords for authorized users
-    $AuthorizedUsers = $AuthorizedUsers | Sort-Object
-    $LocalUsers = $LocalUsers | Sort-Object Name
+        if ($groupExists) {
+            # If the group already exists, ask if the user wants to remove all existing users
+            $removeUsers = Get-YesNo "The group '$groupName' already exists. Do you want to remove all users and replace them with new users?"
 
-    foreach ($User in $LocalUsers) {
-        if ($User.Name -in $AuthorizedUsers) {
-            Write-Host "User '$($User.Name)' is authorized. Setting a secure password..."
-            Set-SecurePassword -username $User.Name
+            if ($removeUsers -eq 'Y') {
+                # Remove all users from the group
+                Get-LocalGroupMember -Group $groupName | ForEach-Object {
+                    Remove-LocalGroupMember -Group $groupName -Member $_.Name
+                }
+            }
         } else {
-            Write-Host "User '$($User.Name)' is not authorized. Removing..."
-            Remove-UnauthorizedUser -username $User.Name
+            # Create a new group if it doesn't exist
+            New-LocalGroup -Name $groupName
         }
-    }
 
-    # Prompt for authorized admin accounts
-    Write-Host "Configuring Administrators group membership..."
-    $AuthorizedAdmins = (Read-Host "Enter authorized admin account names, separated by commas (e.g., Admin1,Admin2)").Split(',').Trim()
+        # Ask for users to add to the group
+        $userNames = (Read-Host "Enter the usernames to add to the group (comma-separated)").Split(',').Trim() | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
 
-    # Get current Administrators group members
-    $AdministratorsGroup = Get-LocalGroupMember -Group "Administrators" | Select-Object -ExpandProperty Name
-
-    # Remove unauthorized admins
-    foreach ($admin in $AdministratorsGroup) {
-        if ($admin -notin $AuthorizedAdmins -and $admin -ne "Administrator") {
-            Write-Host "Removing unauthorized admin account: $admin"
-            try {
-                Remove-LocalGroupMember -Group "Administrators" -Member $admin -ErrorAction Stop
-            } catch {
-                Write-Host "Failed to remove admin account '$admin'. Error: $($_.Exception.Message)"
-            }
+        # Add each user to the group
+        foreach ($user in $userNames) {
+            Add-LocalGroupMember -Group $groupName -Member $user -ErrorAction SilentlyContinue
         }
-    }
 
-    # Ensure authorized admins are in the Administrators group
-    foreach ($admin in $AuthorizedAdmins) {
-        if ($AdministratorsGroup -notcontains $admin) {
-            Write-Host "Adding user '$admin' to the Administrators group."
-            try {
-                Add-LocalGroupMember -Group "Administrators" -Member $admin -ErrorAction Stop
-            } catch {
-                Write-Host "Failed to add user '$admin' to Administrators group. Error: $($_.Exception.Message)"
-            }
-        }
-    }
-
-    # Ensure authorized users are not administrators if not specified
-    foreach ($User in $AuthorizedUsers) {
-        if ($User -notin $AuthorizedAdmins -and $AdministratorsGroup -contains $User) {
-            Write-Host "Removing user '$User' from the Administrators group."
-            try {
-                Remove-LocalGroupMember -Group "Administrators" -Member $User -ErrorAction Stop
-            } catch {
-                Write-Host "Failed to remove user '$User' from Administrators group. Error: $($_.Exception.Message)"
-            }
-        }
-    }
-
-    # Disable the Guest account
-    $GuestAccount = Get-LocalUser -Name "Guest" -ErrorAction SilentlyContinue
-    If ($GuestAccount -and -not $GuestAccount.Enabled) {
-        Write-Host "Disabling Guest account..."
-        Disable-LocalUser -Name "Guest"
-    }
-
-    # Define the group name
-    $groupName = Read-Host "Enter the group name"
-
-    # Check if the group already exists
-    $groupExists = Get-LocalGroup -Name $groupName -ErrorAction SilentlyContinue
-
-    if ($groupExists) {
-        # If the group already exists, ask if the user wants to remove all existing users
-        $removeUsers = Get-YesNo "The group '$groupName' already exists. Do you want to remove all users and replace them with new users?"
-        
-        if ($removeUsers -eq 'Y') {
-            # Remove all users from the group
-            Get-LocalGroupMember -Group $groupName | ForEach-Object {
-                Remove-LocalGroupMember -Group $groupName -Member $_.Name
-            }
-        }
+        Write-Host "Users have been added to the group '$groupName'."
     } else {
-        # Create a new group if it doesn't exist
-        New-LocalGroup -Name $groupName
+        Write-Host "Skipping local user account management."
     }
 
-    # Ask for users to add to the group
-    $userNames = (Read-Host "Enter the usernames to add to the group (comma-separated)").Split(',').Trim() | Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
-
-    # Add each user to the group
-    foreach ($user in $userNames) {
-        Add-LocalGroupMember -Group $groupName -Member $user -ErrorAction SilentlyContinue
     }
-
-    Write-Host "Users have been added to the group '$groupName'."
-} else {
-    Write-Host "Skipping local user account management."
-}
-
-}
 ############################################## MAIN SCRIPT ##############################################
 
 Get-MenuSelect
